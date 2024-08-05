@@ -117,7 +117,7 @@ We used [Fortio](https://github.com/fortio/fortio) to generate load at a rate of
 ### Results Before Optimization
 **Total CPU Usage**: ~ 10 CPUs for all the service
 
-Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD",container=~"sleep-lior-2"})`
+Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD",container="sleep-lior-2"})`
 
 ![alt text](images/total-cpu-usage-before.png)
 **CPU Usage Range**: 2.2 (highest pod) to 0.2 (lowest pod)
