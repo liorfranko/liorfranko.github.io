@@ -94,101 +94,94 @@ server {
 We used [Fortio](https://github.com/fortio/fortio) to generate load at a rate of 1,500 requests per second (rps).
 
 ### Pod List and Calculated Fibonacci Numbers:
-Pods with calculated fibonacci number for 25
-- sleep-lior-2-6794d4cfdc-2gs9b
-- sleep-lior-2-6794d4cfdc-6r6lg
-- sleep-lior-2-6794d4cfdc-rvmd2
-
-Pods with calculated fibonacci number for 26
-- sleep-lior-2-6794d4cfdc-jgxqg
-- sleep-lior-2-6794d4cfdc-stjzd
-
-Pods with calculated fibonacci number for 27
-- sleep-lior-2-6794d4cfdc-7rrwr
-- sleep-lior-2-6794d4cfdc-gv856
-- sleep-lior-2-6794d4cfdc-jz462
-- sleep-lior-2-6794d4cfdc-kr64w
-- sleep-lior-2-6794d4cfdc-kxhwx
-- sleep-lior-2-6794d4cfdc-m2xcx
-- sleep-lior-2-6794d4cfdc-p594m
-- sleep-lior-2-6794d4cfdc-qnlnl
-- sleep-lior-2-6794d4cfdc-tffd9
-
-Pods with calculated fibonacci number for 29
-- sleep-lior-2-6794d4cfdc-mp8sn: 29
+- Pods with calculated fibonacci number for 25
+    - sleep-lior-2-6794d4cfdc-2gs9b
+    - sleep-lior-2-6794d4cfdc-6r6lg
+    - sleep-lior-2-6794d4cfdc-rvmd2
+- Pods with calculated fibonacci number for 26
+    - sleep-lior-2-6794d4cfdc-jgxqg
+    - sleep-lior-2-6794d4cfdc-stjzd
+- Pods with calculated fibonacci number for 27
+    - sleep-lior-2-6794d4cfdc-7rrwr
+    - sleep-lior-2-6794d4cfdc-gv856
+    - sleep-lior-2-6794d4cfdc-jz462
+    - sleep-lior-2-6794d4cfdc-kr64w
+    - sleep-lior-2-6794d4cfdc-kxhwx
+    - sleep-lior-2-6794d4cfdc-m2xcx
+    - sleep-lior-2-6794d4cfdc-p594m
+    - sleep-lior-2-6794d4cfdc-qnlnl
+    - sleep-lior-2-6794d4cfdc-tffd9
+- Pods with calculated fibonacci number for 29
+    - sleep-lior-2-6794d4cfdc-mp8sn: 29
 
 ### Results Before Optimization
-#### Total CPU Usage
-~ 10 CPUs for all the service
+**Total CPU Usage**: ~ 10 CPUs for all the service
 
 Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD",container=~"sleep-lior-2"})`
 
 ![alt text](images/total-cpu-usage-before.png)
-#### CPU Usage Range
-2.2 (highest pod) to 0.2 (lowest pod)
+**CPU Usage Range**: 2.2 (highest pod) to 0.2 (lowest pod)
 
 Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD", container="sleep-lior-2"}) by (pod)`
 
 ![alt text](images/per-pod-cpu-before.png)
 
-#### Service response time:
+**Service response time:**
 
 Expression: `(histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2", destination_workload_namespace="devops-lior"}[2m])) by (le,destination_canonical_service)))`
 
 ![alt text](images/latencies-before.png)
 Expression: `histogram_quantile(<0.5/0.9/0.95/0.99>, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))`
 
-#### Per pod response time: 
-- p50 Latency: 14ms (ranging from 50ms to 6ms)
+**Per pod response time:**
+- **p50 Latency:** 14ms (ranging from 50ms to 6ms)
 ![alt text](images/per-pod-p50-before.png)
-- p90 Latency: 38ms (ranging from 100ms to 10ms)
+- **p90 Latency:** 38ms (ranging from 100ms to 10ms)
 ![alt text](images/per-pod-p90-before.png)
-- p95 Latency: 47ms (ranging from 170ms to 17ms)
+- **p95 Latency:** 47ms (ranging from 170ms to 17ms)
 ![alt text](images/per-pod-p95-before.png)
-- p99 Latency: 93ms (ranging from 234ms to 23ms)
+- **p99 Latency:** 93ms (ranging from 234ms to 23ms)
 ![alt text](images/per-pod-p99-before.png)
-- Request Rate per Pod: 100 requests per second (rp/s)
+- **Request Rate per Pod:** 100 requests per second (rp/s)
 ![alt text](images/per-pod-rps-before.png)
 
 ### Results After Optimization
-#### Total CPU Usage
-Decreased from 10 CPUs to 8 CPUs
+**Total CPU Usage:** Decreased from 10 CPUs to 8 CPUs
 ![alt text](images/CPU-Usage-Reduction.png)
 
-#### CPU Usage Range
-0.6 (highest pod) to 0.45 (lowest pod)
+**CPU Usage Range**: 0.6 (highest pod) to 0.45 (lowest pod)
 ![alt text](images/per-pod-cpu.png)
 
-#### Service response time:
+**Service response time:**
 ![alt text](images/Latency-Reductions.png)
 
-#### Per pod response time: 
-- p50 Latency: 13.2ms (ranging from 23ms to 9ms)
+**Per pod response time:**
+- **p50 Latency:** 13.2ms (ranging from 23ms to 9ms)
 ![alt text](images/per-pod-p50.png)
-- p90 Latency: 24ms (ranging from 46ms to 21ms)
+- **p90 Latency:** 24ms (ranging from 46ms to 21ms)
 ![alt text](images/per-pod-p90.png)
-- p95 Latency: 33ms (ranging from 50ms to 23ms)
+- **p95 Latency:** 33ms (ranging from 50ms to 23ms)
 ![alt text](images/per-pod-p95.png)
-- p99 Latency: 47ms (ranging from 92ms to 24ms)
+- **p99 Latency:** 47ms (ranging from 92ms to 24ms)
 ![alt text](images/per-pod-p99.png)
-- Request Rate per Pod: Adjusted, with the fastest pod handling 224 rp/s and the slowest pod handling 25 rp/s
+- **Request Rate per Pod:** Adjusted, with the fastest pod handling 224 rp/s and the slowest pod handling 25 rp/s
 ![alt text](images/per-pod-rps.png)
 
 ### Interpretation of Results
 
 The optimization demonstrated significant performance improvements:
 
-CPU Usage Reduction:
+**CPU Usage Reduction:**
 - The total CPU usage of all the pods decreased from 10 CPUs to 8 CPUs, indicating more efficient resource utilization.
 
-Latency Reductions:
-- p50 Latency: Decreased from 14ms to 13.2ms
-- p90 Latency: Improved drastically from 38ms to 24ms
-- p95 Latency: Went down from 47ms to 33ms
-- p99 Latency: Nearly halved from 93ms to 47ms
+**Latency Reductions:**
+- **p50 Latency:** Decreased from 14ms to 13.2ms
+- **p90 Latency:** Improved drastically from 38ms to 24ms
+- **p95 Latency:** Went down from 47ms to 33ms
+- **p99 Latency:** Nearly halved from 93ms to 47ms
 
 
-Balanced Load Distribution:
+**Balanced Load Distribution:**
 - Post-optimization, request rates adjusted dynamically to ensure that faster pods handle more requests (up to 224 rp/s), and slower pods handle fewer requests (down to 25 rp/s), contributing to lower latencies and balanced resource usage.
 
 
