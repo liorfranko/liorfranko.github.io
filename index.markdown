@@ -120,6 +120,7 @@ We used [Fortio](https://github.com/fortio/fortio) to generate load at a rate of
 Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD",container="sleep-lior-2"})`
 
 ![alt text](images/total-cpu-usage-before.png)
+
 **CPU Usage Range**: 2.2 (highest pod) to 0.2 (lowest pod)
 
 Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD", container="sleep-lior-2"}) by (pod)`
@@ -204,7 +205,7 @@ We raised an issue on Istio's GitHub repository <https://github.com/istio/istio/
 
 ## Plans
 
-Our proof of concept (POC) is currently running in alpha mode in production and performing well. We've quickly implemented the first step of balancing only CPU resources, and it's effective so far. We've decided to give the Envoy and Istio communities time to integrate something similar to Google's RIF solution. Our next steps include:
+Our custom Kubernetes operator is running in production and performing well. We've successfully implemented the first step of balancing only CPU resources, and it's effective so far. We've decided to give the Envoy and Istio communities time to integrate something similar to Google's RIF solution. Our next steps include:
 
 1. Monitoring and Iteration: Continuously monitoring the performance and making necessary adjustments.
 2. Exploring Additional Metrics: Considering other metrics such as memory usage or network latency for finer load balancing.
