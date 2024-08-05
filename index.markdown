@@ -118,22 +118,27 @@ Pods with calculated fibonacci number for 29
 - sleep-lior-2-6794d4cfdc-mp8sn: 29
 
 ### Results Before Optimization
-
-Performance Metrics:
-- Total CPU Usage: 10 CPUs
+#### Total CPU Usage
+~ 10 CPUs for all the service
 
 Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD",container=~"sleep-lior-2"})`
 
 ![alt text](images/total-cpu-usage-before.png)
-- CPU Usage Range: 2 (highest pod) to 0.2 (lowest pod)
+#### CPU Usage Range
+2.2 (highest pod) to 0.2 (lowest pod)
 
 Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD", container="sleep-lior-2"}) by (pod)`
 
 ![alt text](images/per-pod-cpu-before.png)
 
-Latency Metrics:
+#### Service response time:
+
+Expression: `(histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2", destination_workload_namespace="devops-lior"}[2m])) by (le,destination_canonical_service)))`
+
 ![alt text](images/latencies-before.png)
 Expression: `histogram_quantile(<0.5/0.9/0.95/0.99>, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))`
+
+#### Per pod response time: 
 - p50 Latency: 14ms (ranging from 50ms to 6ms)
 ![alt text](images/per-pod-p50-before.png)
 - p90 Latency: 38ms (ranging from 100ms to 10ms)
@@ -146,15 +151,18 @@ Expression: `histogram_quantile(<0.5/0.9/0.95/0.99>, sum(rate(istio_request_dura
 ![alt text](images/per-pod-rps-before.png)
 
 ### Results After Optimization
-
-Performance Metrics:
-- Total CPU Usage: Decreased from 10 CPUs to 8 CPUs
+#### Total CPU Usage
+Decreased from 10 CPUs to 8 CPUs
 ![alt text](images/CPU-Usage-Reduction.png)
-- CPU Usage Range: 0.6 (highest pod) to 0.45 (lowest pod)
+
+#### CPU Usage Range
+0.6 (highest pod) to 0.45 (lowest pod)
 ![alt text](images/per-pod-cpu.png)
 
-Latency Metrics:
+#### Service response time:
 ![alt text](images/Latency-Reductions.png)
+
+#### Per pod response time: 
 - p50 Latency: 13.2ms (ranging from 23ms to 9ms)
 ![alt text](images/per-pod-p50.png)
 - p90 Latency: 24ms (ranging from 46ms to 21ms)
