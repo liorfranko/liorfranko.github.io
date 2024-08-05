@@ -37,7 +37,7 @@ The calculated weights are applied to the Envoy proxies via Istio's ServiceEntry
 ## Results and Impact
 
 To effectively evaluate the impact of our optimization strategy, we conducted extensive testing using a set of 15 Nginx pods, each executing a Lua script to calculate different Fibonacci numbers ranging from 25 to 29. We used Fortio to generate load at a rate of 1,500 requests per second (rps). Below is the Lua code employed for each Nginx pod:
-```
+```lua
 error_log /dev/stdout info;
 lua_shared_dict my_dict 1m;
 
