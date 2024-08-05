@@ -18,17 +18,9 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 domain: liorfranko.github.io
-title: Istio Adaptive Least Request
+title: ""
 email: liorfranko@gmail.com
-description: >- # this means to ignore newlines until "baseurl:"
-  This article discusses optimizing tail latency in Kubernetes environments running 
-  heterogeneous hardware using Istio, Envoy, and a custom Kubernetes operator. 
-  It details the discovery of hardware disparities as a root cause of high tail latency, 
-  the development of a solution involving dynamic adjustment of 
-  load balancing weights based on CPU usage metrics, and the significant 
-  performance improvements achieved. The article concludes with insights on 
-  community collaboration and plans for further enhancements.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/blog" # the subpath of your site, e.g. /blog
 url: "https://liorfranko.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  liorfranko
 
