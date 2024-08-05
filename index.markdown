@@ -36,7 +36,11 @@ The calculated weights are applied to the Envoy proxies via Istio's ServiceEntry
 
 ## Results and Impact
 
-To effectively evaluate the impact of our optimization strategy, we conducted extensive testing using a set of 15 Nginx pods, each executing a Lua script to calculate different Fibonacci numbers ranging from 25 to 29. We used Fortio to generate load at a rate of 1,500 requests per second (rps). Below is the Lua code employed for each Nginx pod:
+To effectively evaluate the impact of our optimization strategy, we conducted extensive testing using a set of 15 Nginx pods, each executing a Lua script to calculate different Fibonacci numbers ranging from 25 to 29. 
+
+By choosing different Fibonacci numbers for each pod, we introduced variability in the compute load, reflecting the heterogeneous environment. This setup ensures that different pods experience varying levels of CPU usage due to the exponential complexity of the Fibonacci calculation, thereby demonstrating how load balancing adjustments can optimize tail latency.
+
+Below is the Lua code employed for each Nginx pod:
 ```lua
 error_log /dev/stdout info;
 lua_shared_dict my_dict 1m;
@@ -87,24 +91,33 @@ server {
 
 ```
 
-### Results Before Optimization
+We used [Fortio](https://github.com/fortio/fortio) to generate load at a rate of 1,500 requests per second (rps).
 
-Pod List and Calculated Fibonacci Numbers:
-- sleep-lior-2-6794d4cfdc-2gs9b: 25
-- sleep-lior-2-6794d4cfdc-6r6lg: 25
-- sleep-lior-2-6794d4cfdc-rvmd2: 25
-- sleep-lior-2-6794d4cfdc-jgxqg: 26
-- sleep-lior-2-6794d4cfdc-stjzd: 26
-- sleep-lior-2-6794d4cfdc-7rrwr: 27
-- sleep-lior-2-6794d4cfdc-gv856: 27
-- sleep-lior-2-6794d4cfdc-jz462: 27
-- sleep-lior-2-6794d4cfdc-kr64w: 27
-- sleep-lior-2-6794d4cfdc-kxhwx: 27
-- sleep-lior-2-6794d4cfdc-m2xcx: 27
-- sleep-lior-2-6794d4cfdc-p594m: 27
-- sleep-lior-2-6794d4cfdc-qnlnl: 27
-- sleep-lior-2-6794d4cfdc-tffd9: 27
+### Pod List and Calculated Fibonacci Numbers:
+Pods with Fibonacci 25
+- sleep-lior-2-6794d4cfdc-2gs9b
+- sleep-lior-2-6794d4cfdc-6r6lg
+- sleep-lior-2-6794d4cfdc-rvmd2
+
+Pods with Fibonacci 26
+- sleep-lior-2-6794d4cfdc-jgxqg
+- sleep-lior-2-6794d4cfdc-stjzd
+
+Pods with Fibonacci 27
+- sleep-lior-2-6794d4cfdc-7rrwr
+- sleep-lior-2-6794d4cfdc-gv856
+- sleep-lior-2-6794d4cfdc-jz462
+- sleep-lior-2-6794d4cfdc-kr64w
+- sleep-lior-2-6794d4cfdc-kxhwx
+- sleep-lior-2-6794d4cfdc-m2xcx
+- sleep-lior-2-6794d4cfdc-p594m
+- sleep-lior-2-6794d4cfdc-qnlnl
+- sleep-lior-2-6794d4cfdc-tffd9
+
+Pods with Fibonacci 29
 - sleep-lior-2-6794d4cfdc-mp8sn: 29
+
+### Results Before Optimization
 
 Performance Metrics:
 - Total CPU Usage: 10 CPUs
@@ -135,16 +148,30 @@ Latency Metrics:
 The optimization demonstrated significant performance improvements:
 
 CPU Usage Reduction:
+![High-Level Design](images/CPU-Usage-Reduction.png)
 - The total CPU usage of all the pods decreased from 10 CPUs to 8 CPUs, indicating more efficient resource utilization.
 
 Latency Reductions:
+![alt text](images/Latency-Reductions.png)
 - p50 Latency: Decreased from 14ms to 13.2ms
+
+![alt text](images/per-pod-p50.png)
 - p90 Latency: Improved drastically from 38ms to 24ms
+
+![alt text](images/per-pod-p90.png)
 - p95 Latency: Went down from 47ms to 33ms
+
+![alt text](images/per-pod-p95.png)
 - p99 Latency: Nearly halved from 93ms to 47ms
+
+![alt text](images/per-pod-p99.png)
 
 Balanced Load Distribution:
 - Post-optimization, request rates adjusted dynamically to ensure that faster pods handle more requests (up to 224 rp/s), and slower pods handle fewer requests (down to 25 rp/s), contributing to lower latencies and balanced resource usage.
+
+![alt text](images/per-pod-cpu.png)
+
+![alt text](images/per-pod-rps.png)
 
 ## Conclusion
 
