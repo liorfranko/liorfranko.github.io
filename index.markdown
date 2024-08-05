@@ -198,14 +198,14 @@ Extensive Google searches led us to an article detailing Google's innovative met
 
 ## Engaging with the Community
 
-Rather than rushing into developing the Kubernetes controller, we first engaged with the community. We inquired whether anyone knew of a built-in mechanism or an existing open-source add-on that could solve our problem. This approach, while time-consuming, was crucial for our effectiveness. It not only saved us time but also provided us with valuable insights. For example, during our tests, we encountered a bug that the community resolved in less than 24 hours, demonstrating the power of collaborative problem-solving.
+Rather than rushing into developing the Kubernetes operator, we first engaged with the community. We inquired whether anyone knew of a built-in mechanism or an existing open-source add-on that could solve our problem. This approach, while time-consuming, was crucial for our effectiveness. It not only saved us time but also provided us with valuable insights. For example, during our tests, we encountered a bug that the community resolved in less than 24 hours, demonstrating the power of collaborative problem-solving.
 
 Example Community Interaction:
 We raised an issue on Istio's GitHub repository <https://github.com/istio/istio/issues/50968> and witnessed a swift response from the community, highlighting the importance of collaboration.
 
 ## Plans
 
-Our custom Kubernetes operator is running in production and performing well. We've successfully implemented the first step of balancing only CPU resources, and it's effective so far. We've decided to give the Envoy and Istio communities time to integrate something similar to Google's RIF solution. Our next steps include:
+Our Kubernetes operator is running in production and performing well. We've successfully implemented the first step of balancing only CPU resources, and it's effective so far. We've decided to give the Envoy and Istio communities time to integrate something similar to Google's RIF solution. Our next steps include:
 
 1. Monitoring and Iteration: Continuously monitoring the performance and making necessary adjustments.
 2. Exploring Additional Metrics: Considering other metrics such as memory usage or network latency for finer load balancing.
