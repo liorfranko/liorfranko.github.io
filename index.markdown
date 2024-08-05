@@ -119,7 +119,7 @@ Latency Metrics:
 
 ### Results After Optimization
 
-Performance Improvements:
+Performance Metrics:
 - Total CPU Usage: 8 CPUs
 - CPU Usage Range: 0.6 (highest pod) to 0.45 (lowest pod)
 
