@@ -6,9 +6,13 @@ layout: post
 title: Optimizing Tail Latency in a Heterogeneous Environment with Istio, Envoy, and a Custom Kubernetes Operator
 ---
 
+## Abstract
+
+This article details our approach to optimizing tail latency in a heterogeneous Kubernetes environment using Istio, Envoy, and a custom Kubernetes operator. We identified performance disparities caused by hardware variations, developed a solution that dynamically adjusts load balancing weights based on real-time CPU metrics, and achieved significant reductions in tail latency. Our findings demonstrate the effectiveness of adaptive load balancing strategies in improving microservices performance and reliability.
+
 ## Introduction
 
-Running microservices in a Kubernetes environment often involves dealing with various hardware generations and CPU architectures. In our infrastructure, we observed high tail latency in some of our services despite using Istio and Envoy as our service mesh. This article details our journey in identifying the root cause of this issue and implementing a custom solution using a Kubernetes operator to optimize tail latency.
+Running microservices in a Kubernetes environment often involves dealing with various hardware generations and CPU architectures. In our infrastructure, we observed high tail latency in some of our services despite using Istio and Envoy as our service mesh. This article details our journey in identifying the root cause of this issue and implementing a custom solution using a Kubernetes operator to optimize tail latency. Tail latency optimization is crucial in microservices architectures as it directly impacts user experience and system reliability.
 
 ## Identifying the Challenge
 
@@ -16,13 +20,15 @@ We run multiple hardware generations and different CPU architectures within our 
 
 ## Understanding the Problem
 
-Tail latency matters because it represents the latency experienced by the slowest requests, typically measured at the 95th, 99th, or 99.9th percentile. High tail latency can negatively impact user experience and indicate underlying performance bottlenecks. The default load balancing strategy in Envoy works well in homogeneous environments but struggles when hardware performance is uneven, leading to inefficient request distribution and high tail latency.
+Tail latency refers to the latency experienced by the slowest requests, typically measured at the 95th, 99th, or 99.9th percentile. High tail latency can negatively impact user experience and indicate underlying performance bottlenecks. In our case, tail latency matters because it represents the worst-case scenario for our service response times.
+
+The default load balancing strategy in Envoy works well in homogeneous environments but struggles when hardware performance is uneven, leading to inefficient request distribution and high tail latency.
 
 ## Developing the Solution
 
 To address this problem, we developed a custom Kubernetes operator. This operator dynamically adjusts the load balancing weights of Envoy proxies using Istio's CRD called ServiceEntry. Here's how we implemented our solution:
 
-### Step 1: Measuring the CPU Utilization of the Pods
+### Step 1: Measuring CPU Utilization of Pods
 
 We deployed a dedicated VictoriaMetrics cluster to collect real-time CPU usage statistics for each pod. Our operator interfaces with the VictoriaMetrics API to gather this data, calculating the average CPU usage for each service by aggregating individual pod metrics.
 
@@ -34,183 +40,115 @@ Based on the average CPU usage, the operator determines the "distance" of each p
 
 The calculated weights are applied to the Envoy proxies via Istio's ServiceEntry resources. This dynamic adjustment ensures that request distribution considers each pod's real-time performance, optimizing load balancing to reduce tail latency.
 
-## Results and Impact
+![alt text](images/high-level-design.png)
 
-To effectively evaluate the impact of our optimization strategy, we conducted extensive testing using a set of 15 Nginx pods, each executing a Lua script to calculate different Fibonacci numbers ranging from 25 to 29. 
+# Results and Impact
 
-By choosing different Fibonacci numbers for each pod, we introduced variability in the compute load, reflecting the heterogeneous environment. This setup ensures that different pods experience varying levels of CPU usage due to the exponential complexity of the Fibonacci calculation, thereby demonstrating how load balancing adjustments can optimize tail latency.
+To evaluate the impact of our optimization strategy, we conducted extensive testing using a set of 15 Nginx pods, each executing a Lua script to calculate different Fibonacci numbers. This setup introduced variability in compute load, reflecting our heterogeneous environment.
 
-Below is the Lua code employed for each Nginx pod:
-```lua
-error_log /dev/stdout info;
-lua_shared_dict my_dict 1m;
+### Testing Methodology
 
-init_by_lua_block {
-   -- Initialize a shared dictionary to store the random Fibonacci input
-   local dict = ngx.shared.my_dict
-   -- Seed the random number generator
-   math.randomseed(os.time() + ngx.worker.pid())
-   -- Generate a random number (could adjust the range as needed, here we choose between 20 and 30)
-   local random_fib_n = math.random(25, 29)
-   -- Store the random number in the shared dictionary
-   dict:set("fib_n", random_fib_n)
-   -- Log the selected random_fib_n value at initialization
-   ngx.log(ngx.INFO, "Initialized with random_fib_n: " .. random_fib_n)             
-}      
-server {
-   listen       80;
-   server_name  localhost;
+We used Fortio to generate load at a rate of 1,500 requests per second (rps). The Nginx pods were configured to calculate Fibonacci numbers ranging from 25 to 29, creating varying levels of CPU usage. Here's the breakdown of our pod setup:
 
-   location / {
-       default_type 'text/plain';
-       content_by_lua_block {
-         -- Function to calculate Fibonacci
-         local function fib(n)
-             if n<2 then return n end
-             return fib(n-1)+fib(n-2)
-         end
+- Pods calculating Fibonacci number for 25:
+  - sleep-lior-2-6794d4cfdc-2gs9b
+  - sleep-lior-2-6794d4cfdc-6r6lg
+  - sleep-lior-2-6794d4cfdc-rvmd2
 
-         -- Fetch the Fibonacci input from the shared dictionary
-         local dict = ngx.shared.my_dict
-         local n = dict:get("fib_n")
-         -- Compute the Fibonacci number
-         local fib_number = fib(n)
-         -- Output the result
-         ngx.say(fib_number)
-         ngx.say(n)
-         -- Log the Fibonacci number and the value of n
-         ngx.log(ngx.INFO, "This nginx calculated fibonacci number for n=" .. n)
-       }
-   }
+- Pods calculating Fibonacci number for 26:
+  - sleep-lior-2-6794d4cfdc-jgxqg
+  - sleep-lior-2-6794d4cfdc-stjzd
 
-   error_page   500 502 503 504  /50x.html;
-   location = /50x.html {
-       root   /usr/share/nginx/html;
-   }
-}
+- Pods calculating Fibonacci number for 27:
+  - sleep-lior-2-6794d4cfdc-7rrwr
+  - sleep-lior-2-6794d4cfdc-gv856
+  - sleep-lior-2-6794d4cfdc-jz462
+  - sleep-lior-2-6794d4cfdc-kr64w
+  - sleep-lior-2-6794d4cfdc-kxhwx
+  - sleep-lior-2-6794d4cfdc-m2xcx
+  - sleep-lior-2-6794d4cfdc-p594m
+  - sleep-lior-2-6794d4cfdc-qnlnl
+  - sleep-lior-2-6794d4cfdc-tffd9
 
-```
+- Pod calculating Fibonacci number for 29:
+  - sleep-lior-2-6794d4cfdc-mp8sn
 
-We used [Fortio](https://github.com/fortio/fortio) to generate load at a rate of 1,500 requests per second (rps).
+This distribution of Fibonacci calculations across pods simulates a heterogeneous environment where different nodes have varying computational capabilities. The pods calculating lower Fibonacci numbers (25 and 26) represent faster or less loaded nodes, while those calculating higher numbers (27 and especially 29) represent slower or more heavily loaded nodes.
 
-### Pod List and Calculated Fibonacci Numbers:
-- Pods with calculated fibonacci number for 25
-    - sleep-lior-2-6794d4cfdc-2gs9b
-    - sleep-lior-2-6794d4cfdc-6r6lg
-    - sleep-lior-2-6794d4cfdc-rvmd2
-- Pods with calculated fibonacci number for 26
-    - sleep-lior-2-6794d4cfdc-jgxqg
-    - sleep-lior-2-6794d4cfdc-stjzd
-- Pods with calculated fibonacci number for 27
-    - sleep-lior-2-6794d4cfdc-7rrwr
-    - sleep-lior-2-6794d4cfdc-gv856
-    - sleep-lior-2-6794d4cfdc-jz462
-    - sleep-lior-2-6794d4cfdc-kr64w
-    - sleep-lior-2-6794d4cfdc-kxhwx
-    - sleep-lior-2-6794d4cfdc-m2xcx
-    - sleep-lior-2-6794d4cfdc-p594m
-    - sleep-lior-2-6794d4cfdc-qnlnl
-    - sleep-lior-2-6794d4cfdc-tffd9
-- Pods with calculated fibonacci number for 29
-    - sleep-lior-2-6794d4cfdc-mp8sn: 29
+### Before Optimization
 
-### Results Before Optimization
-**Total CPU Usage**: ~ 10 CPUs for all the service
-
-Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD",container="sleep-lior-2"})`
-
+- Total CPU Usage: ~10 CPUs for all pods
 ![alt text](images/total-cpu-usage-before.png)
-
-**CPU Usage Range**: 2.2 (highest pod) to 0.2 (lowest pod)
-
-Expression: `sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD", container="sleep-lior-2"}) by (pod)`
-
+- CPU Usage Range: 2.2 (highest pod) to 0.2 (lowest pod)
 ![alt text](images/per-pod-cpu-before.png)
-
-**Service response time:**
-
-Expression: `(histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2", destination_workload_namespace="devops-lior"}[2m])) by (le,destination_canonical_service)))`
-
+- Service Response Time:
 ![alt text](images/latencies-before.png)
-Expression: `histogram_quantile(<0.5/0.9/0.95/0.99>, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))`
-
-**Per pod response time:**
-- **p50 Latency:** 14ms (ranging from 50ms to 6ms)
-![alt text](images/per-pod-p50-before.png)
-- **p90 Latency:** 38ms (ranging from 100ms to 10ms)
-![alt text](images/per-pod-p90-before.png)
-- **p95 Latency:** 47ms (ranging from 170ms to 17ms)
-![alt text](images/per-pod-p95-before.png)
-- **p99 Latency:** 93ms (ranging from 234ms to 23ms)
-![alt text](images/per-pod-p99-before.png)
-- **Request Rate per Pod:** 100 requests per second (rp/s)
+  - p50 Latency: 14ms (ranging from 50ms to 6ms)
+  ![alt text](images/per-pod-p50-before.png)
+  - p90 Latency: 38ms (ranging from 100ms to 10ms)
+  ![alt text](images/per-pod-p90-before.png)
+  - p95 Latency: 47ms (ranging from 170ms to 17ms)
+  ![alt text](images/per-pod-p95-before.png)
+  - p99 Latency: 93ms (ranging from 234ms to 23ms)
+  ![alt text](images/per-pod-p99-before.png)
+- Request Rate per Pod: 100 requests per second (uniform)
 ![alt text](images/per-pod-rps-before.png)
 
-### Results After Optimization
-**Total CPU Usage:** Decreased from 10 CPUs to 8 CPUs
+### After Optimization
+
+- Total CPU Usage: Decreased to 8 CPUs
 ![alt text](images/CPU-Usage-Reduction.png)
-
-**CPU Usage Range**: 0.6 (highest pod) to 0.45 (lowest pod)
+- CPU Usage Range: 0.6 (highest pod) to 0.45 (lowest pod)
 ![alt text](images/per-pod-cpu.png)
-
-**Service response time:**
+- Service Response Time:
 ![alt text](images/Latency-Reductions.png)
-
-**Per pod response time:**
-- **p50 Latency:** 13.2ms (ranging from 23ms to 9ms)
-![alt text](images/per-pod-p50.png)
-- **p90 Latency:** 24ms (ranging from 46ms to 21ms)
-![alt text](images/per-pod-p90.png)
-- **p95 Latency:** 33ms (ranging from 50ms to 23ms)
-![alt text](images/per-pod-p95.png)
-- **p99 Latency:** 47ms (ranging from 92ms to 24ms)
-![alt text](images/per-pod-p99.png)
-- **Request Rate per Pod:** Adjusted, with the fastest pod handling 224 rp/s and the slowest pod handling 25 rp/s
+  - p50 Latency: 13.2ms (ranging from 23ms to 9ms)
+  ![alt text](images/per-pod-p50.png)
+  - p90 Latency: 24ms (ranging from 46ms to 21ms)
+  ![alt text](images/per-pod-p90.png)
+  - p95 Latency: 33ms (ranging from 50ms to 23ms)
+  ![alt text](images/per-pod-p95.png)
+  - p99 Latency: 47ms (ranging from 92ms to 24ms)
+  ![alt text](images/per-pod-p99.png)
+- Request Rate per Pod: Adjusted, ranging from 25 rp/s to 224 rp/s
 ![alt text](images/per-pod-rps.png)
+
 
 ### Interpretation of Results
 
 The optimization demonstrated significant performance improvements:
 
-**CPU Usage Reduction:**
-- The total CPU usage of all the pods decreased from 10 CPUs to 8 CPUs, indicating more efficient resource utilization.
-
-**Latency Reductions:**
-- **p50 Latency:** Decreased from 14ms to 13.2ms
-- **p90 Latency:** Improved drastically from 38ms to 24ms
-- **p95 Latency:** Went down from 47ms to 33ms
-- **p99 Latency:** Nearly halved from 93ms to 47ms
-
-
-**Balanced Load Distribution:**
-- Post-optimization, request rates adjusted dynamically to ensure that faster pods handle more requests (up to 224 rp/s), and slower pods handle fewer requests (down to 25 rp/s), contributing to lower latencies and balanced resource usage.
-
+- **CPU Usage Reduction:** Total usage decreased from 10 CPUs to 8 CPUs, indicating more efficient resource utilization.
+- **Latency Reductions:** Significant improvements across all percentiles, with p99 latency nearly halved.
+- **Balanced Load Distribution:** Request rates adjusted dynamically, ensuring faster pods handle more requests and slower pods handle fewer, contributing to lower latencies and balanced resource usage.
 
 ## Conclusion
 
 By focusing on CPU metrics and dynamically adjusting load balancing weights, we optimized the performance of our microservices running in a heterogeneous hardware environment. This approach, facilitated by a custom Kubernetes operator and leveraging Istio and Envoy, enabled us to reduce tail latency and improve overall system reliability significantly.
 
-Maintaining high performance in distributed systems can be challenging, but with intelligent automation and a focus on critical metrics, significant improvements in consistency and reliability can be achieved. Our experience demonstrates that adapting load-balancing strategies to account for hardware variability can overcome performance disparities and create a more responsive and robust microservices architecture.
+Our experience demonstrates that adapting load-balancing strategies to account for hardware variability can overcome performance disparities and create a more responsive and robust microservices architecture. This approach has broader implications for the industry, particularly for organizations managing diverse infrastructure or transitioning between hardware generations.
 
-## Google Search
+## Research and Community Engagement
 
-Extensive Google searches led us to an article detailing Google's innovative methods for similar issues. This discovery was transformative, affirming that load balancing of least connections is a common challenge. Google developed an internal mechanism called Prequal, which optimizes load balancing by minimizing real-time latency and requests-in-flight (RIF), a concept not found in Envoy's load balancing.
+Our journey began with extensive research, including Google searches that led us to an article detailing Google's innovative methods for similar issues. This discovery was transformative, affirming that load balancing of least connections is a common challenge. Google developed an internal mechanism called Prequal, which optimizes load balancing by minimizing real-time latency and requests-in-flight (RIF), a concept not found in Envoy's load balancing.
 
-## Engaging with the Community
+Before developing our Kubernetes operator, we engaged with the community to explore existing solutions. This approach provided valuable insights and saved time. For example, during our tests, we encountered a bug that the community resolved in less than 24 hours, demonstrating the power of collaborative problem-solving.
 
-Rather than rushing into developing the Kubernetes operator, we first engaged with the community. We inquired whether anyone knew of a built-in mechanism or an existing open-source add-on that could solve our problem. This approach, while time-consuming, was crucial for our effectiveness. It not only saved us time but also provided us with valuable insights. For example, during our tests, we encountered a bug that the community resolved in less than 24 hours, demonstrating the power of collaborative problem-solving.
+We raised an issue on Istio's GitHub repository (https://github.com/istio/istio/issues/50968) and witnessed a swift response from the community, highlighting the importance of collaboration in open-source projects.
 
-**Example Community Interaction:**
-We raised an issue on Istio's GitHub repository <https://github.com/istio/istio/issues/50968> and witnessed a swift response from the community, highlighting the importance of collaboration.
+## Future Work
 
-## Plans
-
-Our Kubernetes operator is running in production and performing well. We've successfully implemented the first step of balancing only CPU resources, and it's effective so far. We've decided to give the Envoy and Istio communities time to integrate something similar to Google's RIF solution. 
-
-**Our next steps include:**
+Our Kubernetes operator is running in production and performing well. We've successfully implemented the first step of balancing CPU resources, and it's effective so far. Moving forward, our plans include:
 
 1. Monitoring and Iteration: Continuously monitoring the performance and making necessary adjustments.
 2. Exploring Additional Metrics: Considering other metrics such as memory usage or network latency for finer load balancing.
 3. Community Collaboration: Working with the Istio and Envoy communities to contribute our findings and improvements back to the open-source projects.
 
-Through targeted optimization and community collaboration, we believe our approach can serve as a blueprint for others facing similar challenges in heterogeneous Kubernetes environments.
+We believe our approach can serve as a blueprint for others facing similar challenges in heterogeneous Kubernetes environments, and we look forward to further optimizations and community contributions.
+
+## Appendix: Implementation Details
+
+For the detailed implementation of our Fibonacci calculator used in the Nginx pods, please refer to our [Lua script](./fibonacci_calculator.lua).
+
+For the complete codebase and additional implementation details, please visit our GitHub repository:
+[Istio-adaptive-least-request](https://github.com/liorfranko/Istio-adaptive-least-request)
