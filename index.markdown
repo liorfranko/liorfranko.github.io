@@ -112,12 +112,12 @@ This distribution of Fibonacci calculations across pods simulates a heterogeneou
     sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD", container="sleep-lior-2"}) by (pod)<br><br></i></figcaption> 
 - Service Response Time:
 ![alt text](images/latencies-before.png)
-    <figcaption><i>Fig 4: Service latencies before optimization:<br>
-    histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))<br>
-    histogram_quantile(0.90, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))<br>
-    histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))<br>
-    histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))<br><br>
-    </i></figcaption>
+    <figcaption><i>Fig 4: Service latencies before optimization:<ul>
+    <li>histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
+    <li>histogram_quantile(0.90, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
+    <li>histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
+    <li>histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
+    </ul></i></figcaption>
   - p50 Latency: 14ms (ranging from 50ms to 6ms)
   ![alt text](images/per-pod-p50-before.png)
     <figcaption><i>Fig 5: Per-pod p50 latency before optimization:<br>
@@ -151,12 +151,12 @@ This distribution of Fibonacci calculations across pods simulates a heterogeneou
     sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate{container!="POD", container="sleep-lior-2"}) by (pod)<br><br></i></figcaption> 
 - Service Response Time:
 ![alt text](images/Latency-Reductions.png)
-    <figcaption><i>Fig 12: Service latencies after optimization:<br>
-    histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))<br>
-    histogram_quantile(0.90, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))<br>
-    histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))<br>
-    histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))<br><br>
-    </i></figcaption>
+    <figcaption><i>Fig 12: Service latencies after optimization:<ul>
+    <li>histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
+    <li>histogram_quantile(0.90, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
+    <li>histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
+    <li>histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
+    </ul></i></figcaption>
   - p50 Latency: 13.2ms (ranging from 23ms to 9ms)
   ![alt text](images/per-pod-p50.png)
     <figcaption><i>Fig 13: Per-pod p50 latency after optimization:
