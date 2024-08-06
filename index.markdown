@@ -41,7 +41,7 @@ Based on the average CPU usage, the operator determines the "distance" of each p
 The calculated weights are applied to the Envoy proxies via Istio's ServiceEntry resources. This dynamic adjustment ensures that request distribution considers each pod's real-time performance, optimizing load balancing to reduce tail latency.
 
 ![alt text](images/high-level-design.png)
-<figcaption><i>Fig 1: High Level Design:</i></figcaption>
+<figcaption><i>Fig 1: High Level Design</i></figcaption>
 # Results and Impact
 
 To evaluate the impact of our optimization strategy, we conducted extensive testing using a set of 15 Nginx pods, each executing a Lua script to calculate different Fibonacci numbers. This setup introduced variability in compute load, reflecting our heterogeneous environment.
