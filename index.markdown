@@ -114,8 +114,11 @@ This distribution of Fibonacci calculations across pods simulates a heterogeneou
 ![alt text](images/latencies-before.png)
     <figcaption><i>Fig 4: Service latencies before optimization:
     histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))
+
     histogram_quantile(0.90, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))
+
     histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))
+    
     histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))
     </i></figcaption>
   - p50 Latency: 14ms (ranging from 50ms to 6ms)
