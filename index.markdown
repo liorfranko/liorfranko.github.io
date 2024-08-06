@@ -6,6 +6,19 @@ layout: post
 title: Optimizing Tail Latency in a Heterogeneous Environment with Istio, Envoy, and a Custom Kubernetes Operator
 ---
 
+## Table of Contents
+1. [Abstract](#abstract)
+2. [Introduction](#introduction)
+3. [Identifying the Challenge](#identifying-the-challenge)
+4. [Understanding the Problem](#understanding-the-problem)
+5. [Developing the Solution](#developing-the-solution)
+6. [Results and Impact](#results-and-impact)
+7. [Conclusion](#conclusion)
+8. [Research and Community Engagement](#research-and-community-engagement)
+9. [Future Work](#future-work)
+10. [Acknowledgments](#acknowledgments)
+11. [Appendix: Implementation Details](#appendix-implementation-details)
+
 ## Abstract
 
 This article details our approach to optimizing tail latency in a heterogeneous Kubernetes environment using Istio, Envoy, and a custom Kubernetes operator. We identified performance disparities caused by hardware variations, developed a solution that dynamically adjusts load balancing weights based on real-time CPU metrics, and achieved significant reductions in tail latency. Our findings demonstrate the effectiveness of adaptive load balancing strategies in improving microservices performance and reliability.
@@ -42,7 +55,18 @@ The calculated weights are applied to the Envoy proxies via Istio's ServiceEntry
 
 ![alt text](images/high-level-design.png)
 <figcaption><i>Fig 1: High Level Design</i></figcaption>
-# Results and Impact
+
+## Results and Impact
+
+### Summary of Key Improvements
+
+Before diving into the detailed metrics, here's a summary of the key improvements achieved through our optimization:
+
+- Total CPU usage reduced by 20% (from 10 CPUs to 8 CPUs)
+- P99 latency decreased by nearly 50% (from 93ms to 47ms)
+- More balanced request distribution across pods (25 rp/s to 224 rp/s vs. uniform 100 rp/s)
+
+These improvements demonstrate significant enhancements in resource utilization, response times, and load distribution.
 
 To evaluate the impact of our optimization strategy, we conducted extensive testing using a set of 15 Nginx pods, each executing a Lua script to calculate different Fibonacci numbers. This setup introduced variability in compute load, reflecting our heterogeneous environment.
 
@@ -162,6 +186,8 @@ The optimization demonstrated significant performance improvements:
 - **Latency Reductions:** Significant improvements across all percentiles, with p99 latency nearly halved.
 - **Balanced Load Distribution:** Request rates adjusted dynamically, ensuring faster pods handle more requests and slower pods handle fewer, contributing to lower latencies and balanced resource usage.
 
+These improvements have real-world implications for user experience and system efficiency. The reduction in tail latency means that even the slowest 1% of requests are now processed twice as fast, leading to a more consistent and responsive user experience. The more efficient CPU utilization allows for better resource allocation, potentially reducing infrastructure costs or allowing for higher overall throughput with the same resources.
+
 ## Conclusion
 
 By focusing on CPU metrics and dynamically adjusting load balancing weights, we optimized the performance of our microservices running in a heterogeneous hardware environment. This approach, facilitated by a custom Kubernetes operator and leveraging Istio and Envoy, enabled us to reduce tail latency and improve overall system reliability significantly.
@@ -185,6 +211,11 @@ Our Kubernetes operator is running in production and performing well. We've succ
 3. Community Collaboration: Working with the Istio and Envoy communities to contribute our findings and improvements back to the open-source projects.
 
 We believe our approach can serve as a blueprint for others facing similar challenges in heterogeneous Kubernetes environments, and we look forward to further optimizations and community contributions.
+
+## Acknowledgments
+
+We would like to express our gratitude to the Istio and Envoy communities for their invaluable support and quick responses to our queries. Special thanks to the VictoriaMetrics team for their high-performance monitoring solution that made our real-time metrics collection possible. We also appreciate the contributions of all team members involved in this project, whose dedication and expertise were crucial to its success.
+
 
 ## Appendix: Implementation Details
 
