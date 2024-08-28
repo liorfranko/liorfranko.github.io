@@ -21,13 +21,13 @@ title: Optimizing Tail Latency in a Heterogeneous Environment with Istio, Envoy,
 
 ## Abstract
 
-This article details our approach to optimizing tail latency in a heterogeneous Kubernetes environment using Istio, Envoy, and a custom Kubernetes operator. We identified performance disparities caused by hardware variations, developed a solution that dynamically adjusts load balancing weights based on real-time CPU metrics, and achieved significant reductions in tail latency. Our findings demonstrate the effectiveness of adaptive load balancing strategies in improving microservices performance and reliability.
+This article details our approach to optimizing tail latency in Kubernetes using Istio, Envoy and a custom Kubernetes operator. We identified performance disparities caused by hardware variations which drove us to develop a solution that dynamically adjusts load balancing weights based on real-time CPU metrics. We managed to achieve significant reductions in tail latency, our findings demonstrate the effectiveness of adaptive load balancing strategies in improving microservices performance and reliability.
 
 ## Introduction
 
-Running microservices in a Kubernetes environment often involves dealing with various hardware generations and CPU architectures. In our infrastructure, we observed high tail latency in some of our services despite using Istio and Envoy as our service mesh. This article details our journey in identifying the root cause of this issue and implementing a custom solution using a Kubernetes operator to optimize tail latency. Tail latency optimization is crucial in microservices architectures as it directly impacts user experience and system reliability.
+Running microservices in Kubernetes often involves dealing with various hardware generations and CPU architectures. In our infrastructure, we observed high tail latency in some of our services despite using Istio and Envoy as our service mesh. This article details our journey in identifying the root cause of this issue and implementing a custom solution using a Kubernetes operator to optimize tail latency. Tail latency optimization is crucial as it directly impacts user experience and system reliability.
 
-## Identifying the Challenge
+## Identifying the Problem
 
 We run multiple hardware generations and different CPU architectures within our Kubernetes clusters. Our service mesh, composed of Istio for control and Envoy for the data plane, uses the `LEAST_REQUEST` load-balancing algorithm to distribute traffic between services. However, we noticed that certain services experienced significantly high tail latency. Upon investigation, we discovered that the disparities in hardware capabilities were the main cause of this issue.
 
@@ -43,15 +43,15 @@ To address this problem, we developed a custom Kubernetes operator. This operato
 
 ### Step 1: Measuring CPU Utilization of Pods
 
-We deployed a dedicated VictoriaMetrics cluster to collect real-time CPU usage statistics for each pod. Our operator interfaces with the VictoriaMetrics API to gather this data, calculating the average CPU usage for each service by aggregating individual pod metrics.
+We deployed a dedicated VictoriaMetrics TSDB to collect real-time CPU usage statistics for each pod. Our operator interfaces with VictoriaMetrics API to gather this data, calculating the average CPU usage for each service by aggregating individual pod metrics.
 
 ### Step 2: Calculating Weight Adjustments
 
-Based on the average CPU usage, the operator determines the "distance" of each pod's CPU usage from the average. Pods with CPU usage below the average are assigned higher weights, indicating they can handle more requests. Conversely, pods with higher-than-average CPU usage receive lower weights to prevent them from becoming bottlenecks.
+Based on the average CPU usage, the operator determines the "distance" of each pod's CPU usage from the average. Pods with CPU usage below the average are assigned higher weights, indicating they can handle more requests. Conversely, pods with higher-than-average CPU usage receive lower weights to prevent them from getting more requests and becoming bottlenecks.
 
 ### Step 3: Applying the Weights
 
-The calculated weights are applied to the Envoy proxies via Istio's ServiceEntry resources. This dynamic adjustment ensures that request distribution considers each pod's real-time performance, optimizing load balancing to reduce tail latency.
+The calculated weights are applied to the Envoy proxies via Istio's ServiceEntry resources. This dynamic adjustment ensures that request distribution considers each pod's real-time performance therefore optimizing load balancing to reduce tail latency.
 
 ![alt text](images/high-level-design.png)
 <figcaption><i>Fig 1: High Level Design<br><br></i></figcaption>
@@ -196,7 +196,7 @@ Our experience demonstrates that adapting load-balancing strategies to account f
 
 ## Research and Community Engagement
 
-Our journey began with extensive research, including Google searches that led us to an article detailing Google's innovative methods for similar issues. This discovery was transformative, affirming that load balancing of least connections is a common challenge. Google developed an internal mechanism called Prequal, which optimizes load balancing by minimizing real-time latency and requests-in-flight (RIF), a concept not found in Envoy's load balancing.
+Our journey began with extensive research which led us to an article detailing Google's innovative methods for similar issues. This discovery was transformative, affirming that load balancing of least connections is a common challenge. Google developed an internal mechanism called Prequal, which optimizes load balancing by minimizing real-time latency and requests-in-flight (RIF), a concept not found in Envoy's load balancing.
 
 Before developing our Kubernetes operator, we engaged with the community to explore existing solutions. This approach provided valuable insights and saved time. For example, during our tests, we encountered a bug that the community resolved in less than 24 hours, demonstrating the power of collaborative problem-solving.
 
@@ -206,20 +206,19 @@ We raised an issue on Istio's GitHub repository (https://github.com/istio/istio/
 
 Our Kubernetes operator is running in production and performing well. We've successfully implemented the first step of balancing CPU resources, and it's effective so far. Moving forward, our plans include:
 
-1. Monitoring and Iteration: Continuously monitoring the performance and making necessary adjustments.
+1. Monitoring and Iteration: Continuously monitoring performance and making necessary adjustments.
 2. Exploring Additional Metrics: Considering other metrics such as memory usage or network latency for finer load balancing.
-3. Community Collaboration: Working with the Istio and Envoy communities to contribute our findings and improvements back to the open-source projects.
+3. Community Collaboration: Working with Istio and Envoy communities to contribute our findings and improvements back to the open-source projects.
 
 We believe our approach can serve as a blueprint for others facing similar challenges in heterogeneous Kubernetes environments, and we look forward to further optimizations and community contributions.
 
 ## Acknowledgments
 
-We would like to express our gratitude to the Istio and Envoy communities for their invaluable support and quick responses to our queries. Special thanks to the VictoriaMetrics team for their high-performance monitoring solution that made our real-time metrics collection possible. We also appreciate the contributions of all team members involved in this project, whose dedication and expertise were crucial to its success.
-
+We would like to express our gratitude to the Istio and Envoy communities for their invaluable support and quick response to our queries. Special thanks to the VictoriaMetrics team for their high-performance monitoring solution that made our real-time metrics collection possible. We also appreciate the contributions of all team members involved in this project, whose dedication and expertise were crucial to its success.
 
 ## Appendix: Implementation Details
 
-For the detailed implementation of our Fibonacci calculator used in the Nginx pods, please refer to our [Lua script](./fibonacci_calculator.lua).
+For detailed implementation of our Fibonacci calculator used in the Nginx pods, please refer to our [Lua script](./fibonacci_calculator.lua).
 
-For the complete codebase and additional implementation details, please visit our GitHub repository:
+For complete codebase and additional implementation details, please visit our GitHub repository:
 [Istio-adaptive-least-request](https://github.com/liorfranko/Istio-adaptive-least-request)
