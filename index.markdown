@@ -62,9 +62,9 @@ The calculated weights are applied to the Envoy proxies via Istio's ServiceEntry
 
 Before diving into the detailed metrics, here's a summary of the key improvements achieved through our optimization:
 
-- Total CPU usage reduced by 20% (from 10 CPUs to 8 CPUs)
-- P99 latency decreased by nearly 50% (from 93ms to 47ms)
-- More balanced request distribution across pods (25 rp/s to 224 rp/s vs. uniform 100 rp/s)
+- Total CPU usage reduced by 20%
+- P99 latency decreased by nearly 50%
+- More balanced request distribution across pods
 
 These improvements demonstrate significant enhancements in resource utilization, response times, and load distribution.
 
