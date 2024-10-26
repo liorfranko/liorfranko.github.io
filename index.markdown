@@ -118,23 +118,23 @@ This distribution of Fibonacci calculations across pods simulates a heterogeneou
     <li>histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
     <li>histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
     </ul></i></figcaption>
-  - p50 Latency: 14ms (ranging from 50ms to 6ms)
+  - Per pod p50 Latency: 14ms (ranging from 50ms to 6ms)
   ![alt text](images/per-pod-p50-before.png)
     <figcaption><i>Fig 5: Per-pod p50 latency before optimization:<br>
     histogram_quantile(0.5, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))<br><br></i></figcaption>
-  - p90 Latency: 38ms (ranging from 100ms to 10ms)
+  - Per pod p90 Latency: 38ms (ranging from 100ms to 10ms)
   ![alt text](images/per-pod-p90-before.png)
     <figcaption><i>Fig 6: Per-pod p90 latency before optimization:<br>
     histogram_quantile(0.9, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))<br><br></i></figcaption>  
-  - p95 Latency: 47ms (ranging from 170ms to 17ms)
+  - Per pod p95 Latency: 47ms (ranging from 170ms to 17ms)
   ![alt text](images/per-pod-p95-before.png)
     <figcaption><i>Fig 7: Per-pod p95 latency before optimization:<br>
     histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))<br><br></i></figcaption>    
-  - p99 Latency: 93ms (ranging from 234ms to 23ms) 
+  - Per pod p99 Latency: 93ms (ranging from 234ms to 23ms) 
   ![alt text](images/per-pod-p99-before.png)
     <figcaption><i>Fig 8: Per-pod p99 latency before optimization:<br>
     histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))<br><br></i></figcaption>
-- Request Rate per Pod: 100 requests per second (uniform)
+- Per pod Request Rate: 100 requests per second (uniform)
 ![alt text](images/per-pod-rps-before.png)
     <figcaption><i>Fig 9: Per-pod request rate before optimization:<br>
     sum(rate(istio_requests_total{container!="POD",destination_canonical_service=~"sleep-lior-2",pod=~"sleep-lior-2.*"})) by (pod)<br><br></i></figcaption>
@@ -157,23 +157,23 @@ This distribution of Fibonacci calculations across pods simulates a heterogeneou
     <li>histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
     <li>histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2"}[2m])) by (le,destination_canonical_service))</li>
     </ul></i></figcaption>
-  - p50 Latency: 13.2ms (ranging from 23ms to 9ms)
+  - Per pod p50 Latency: 13.2ms (ranging from 23ms to 9ms)
   ![alt text](images/per-pod-p50.png)
     <figcaption><i>Fig 13: Per-pod p50 latency after optimization:
     histogram_quantile(0.5, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))<br><br></i></figcaption>  
-  - p90 Latency: 24ms (ranging from 46ms to 21ms)
+  - Per pod p90 Latency: 24ms (ranging from 46ms to 21ms)
   ![alt text](images/per-pod-p90.png)
     <figcaption><i>Fig 14: Per-pod p90 latency after optimization:
     histogram_quantile(0.9, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))<br><br></i></figcaption>    
-  - p95 Latency: 33ms (ranging from 50ms to 23ms)
+  - Per pod p95 Latency: 33ms (ranging from 50ms to 23ms)
   ![alt text](images/per-pod-p95.png)
     <figcaption><i>Fig 15: Per-pod p95 latency after optimization:
     histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))<br><br></i></figcaption>     
-  - p99 Latency: 47ms (ranging from 92ms to 24ms)
+  - Per pod p99 Latency: 47ms (ranging from 92ms to 24ms)
   ![alt text](images/per-pod-p99.png)
     <figcaption><i>Fig 16: Per-pod p99 latency after optimization:
     histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter="destination",destination_canonical_service="sleep-lior-2",request_protocol="http",response_code=~"2.*",pod=~"sleep-lior-2.*"}[2m])) by (le,pod))<br><br></i></figcaption>    
-- Request Rate per Pod: Adjusted, ranging from 25 rp/s to 224 rp/s
+- Per pod Request Rate: Adjusted, ranging from 25 rp/s to 224 rp/s
 ![alt text](images/per-pod-rps.png)
     <figcaption><i>Fig 17: Per-pod request rate after optimization:
     sum(rate(istio_requests_total{container!="POD",destination_canonical_service=~"sleep-lior-2",pod=~"sleep-lior-2.*"})) by (pod)<br><br></i></figcaption>
